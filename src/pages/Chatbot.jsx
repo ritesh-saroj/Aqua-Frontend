@@ -59,271 +59,26 @@ function pickRandom(arr, n) {
   return shuffled.slice(0, n);
 }
 
-async function getOpenAIResponse(query, data, apiKey, chatHistory = []) {
-  if (!apiKey) return { text: "Please enter your OpenAI API Key down below to enable AI responses.", data: null };
+async function getChatAIResponse(query, data, chatHistory = []) {
   if (!data) return { text: "Data is loading...", data: null };
   
-  // ────── ABBREVIATION & ALIAS MAP ──────
-  const STATE_ALIASES = {
-    // Common abbreviations
-    "up": "UTTAR PRADESH", "mp": "MADHYA PRADESH", "ap": "ANDHRA PRADESH",
-    "ts": "TELANGANA", "tn": "TAMILNADU", "wb": "WEST BENGAL",
-    "hp": "HIMACHAL PRADESH", "uk": "UTTARAKHAND", "jk": "JAMMU AND KASHMIR",
-    "j&k": "JAMMU AND KASHMIR", "j and k": "JAMMU AND KASHMIR",
-    "cg": "CHHATTISGARH", "rj": "RAJASTHAN", "raj": "RAJASTHAN",
-    "mh": "MAHARASHTRA", "gj": "GUJARAT", "guj": "GUJARAT",
-    "ka": "KARNATAKA", "kr": "KERALA", "pb": "PUNJAB",
-    "hr": "HARYANA", "br": "BIHAR", "jh": "JHARKHAND",
-    "or": "ODISHA", "ga": "GOA", "sk": "SIKKIM",
-    "mn": "MANIPUR", "ml": "MEGHALAYA", "mz": "MIZORAM",
-    "nl": "NAGALAND", "tr": "TRIPURA", "ar": "ARUNACHAL PRADESH",
-    "as": "ASSAM", "dl": "DELHI", "ch": "CHANDIGARH",
-    "ld": "LAKSHADWEEP", "py": "PUDUCHERRY", "an": "ANDAMAN AND NICOBAR ISLANDS",
-    "dd": "DAMAN AND DIU", "dn": "DADRA AND NAGAR HAVELI",
-    // Common short names / misspellings
-    "uttar pradesh": "UTTAR PRADESH", "madhya pradesh": "MADHYA PRADESH",
-    "andhra pradesh": "ANDHRA PRADESH", "andhra": "ANDHRA PRADESH",
-    "arunachal pradesh": "ARUNACHAL PRADESH", "arunachal": "ARUNACHAL PRADESH",
-    "himachal pradesh": "HIMACHAL PRADESH", "himachal": "HIMACHAL PRADESH",
-    "tamil nadu": "TAMILNADU", "tamilnadu": "TAMILNADU",
-    "west bengal": "WEST BENGAL", "bengal": "WEST BENGAL",
-    "uttarakhand": "UTTARAKHAND", "uttrakhand": "UTTARAKHAND",
-    "chhattisgarh": "CHHATTISGARH", "chattisgarh": "CHHATTISGARH", "chhatisgarh": "CHHATTISGARH",
-    "jharkhand": "JHARKHAND", "jarkhand": "JHARKHAND",
-    "maharashtra": "MAHARASHTRA", "maha": "MAHARASHTRA",
-    "rajasthan": "RAJASTHAN", "gujarat": "GUJARAT",
-    "karnataka": "KARNATAKA", "kerala": "KERALA",
-    "punjab": "PUNJAB", "haryana": "HARYANA", "bihar": "BIHAR",
-    "odisha": "ODISHA", "orissa": "ODISHA",
-    "telangana": "TELANGANA", "telengana": "TELANGANA",
-    "goa": "GOA", "sikkim": "SIKKIM", "manipur": "MANIPUR",
-    "meghalaya": "MEGHALAYA", "mizoram": "MIZORAM", "nagaland": "NAGALAND",
-    "tripura": "TRIPURA", "assam": "ASSAM",
-    "delhi": "DELHI", "new delhi": "DELHI",
-    "chandigarh": "CHANDIGARH", "puducherry": "PUDUCHERRY", "pondicherry": "PUDUCHERRY",
-    "ladakh": "LADAKH", "lakshadweep": "LAKSHADWEEP",
-    "andaman": "ANDAMAN AND NICOBAR ISLANDS", "nicobar": "ANDAMAN AND NICOBAR ISLANDS",
-    "daman": "DAMAN AND DIU", "diu": "DAMAN AND DIU",
-    "dadra": "DADRA AND NAGAR HAVELI", "nagar haveli": "DADRA AND NAGAR HAVELI",
-    "jammu": "JAMMU AND KASHMIR", "kashmir": "JAMMU AND KASHMIR",
-  };
-
-  // ────── SMART QUERY PREPROCESSING ──────
-  let q = query.toLowerCase().trim();
-  
-  // Expand abbreviations in the query for matching
-  const resolveAliases = (input) => {
-    const words = input.split(/\s+/);
-    const resolved = [];
-    // First try multi-word matches (longest first)
-    let i = 0;
-    while (i < words.length) {
-      let matched = false;
-      // Try 4-word, 3-word, 2-word combos first
-      for (let len = Math.min(4, words.length - i); len >= 1; len--) {
-        const phrase = words.slice(i, i + len).join(" ");
-        if (STATE_ALIASES[phrase]) {
-          resolved.push(STATE_ALIASES[phrase]);
-          i += len;
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        resolved.push(words[i]);
-        i++;
-      }
-    }
-    return resolved;
-  };
-  
-  const resolvedTokens = resolveAliases(q);
-  
-  // ────── CONTEXT BUILDING ──────
-  let contextData = {};
-  
-  // Create lists from our parsed data
-  const stateNames = data.states.map(s => s.state);
-  
-  // Match states
-  const matchedStates = [];
-  stateNames.forEach(s => {
-    if (q.includes(s.toLowerCase())) {
-      if (!matchedStates.includes(s)) matchedStates.push(s);
-      return;
-    }
-    if (resolvedTokens.includes(s)) {
-      if (!matchedStates.includes(s)) matchedStates.push(s);
-    }
-  });
-  
-  // Match districts
-  const matchedDistricts = [];
-  data.districts.forEach(d => {
-    const dl = d.district.toLowerCase();
-    if (q.includes(dl) || resolvedTokens.some(t => t.toLowerCase() === dl)) {
-      if (!matchedDistricts.includes(d.district)) matchedDistricts.push(d.district);
-      if (!matchedStates.includes(d.state)) matchedStates.push(d.state);
-    }
-  });
-
-  if (matchedDistricts.length > 0) {
-    // Exact district rows + State summary fallback
-    contextData.districtDetails = data.districts.filter(d => matchedDistricts.includes(d.district));
-    contextData.stateSummaries = data.states.filter(s => matchedStates.includes(s.state));
-  } else if (matchedStates.length > 0) {
-    // State level rows only
-    contextData.stateDetails = data.states.filter(s => matchedStates.includes(s.state));
-  } else {
-    // ────── CONVERSATION HISTORY CONTEXT ──────
-    const recentMsgs = chatHistory.slice(-4).map(m => m.text.toLowerCase()).join(" ");
-    const historyResolvedTokens = resolveAliases(recentMsgs);
-    
-    const historyMatchedStates = [];
-    stateNames.forEach(s => {
-      if (recentMsgs.includes(s.toLowerCase()) || historyResolvedTokens.includes(s)) {
-        if (!historyMatchedStates.includes(s)) historyMatchedStates.push(s);
-      }
-    });
-
-    const historyMatchedDistricts = [];
-    data.districts.forEach(d => {
-      const dl = d.district.toLowerCase();
-      if (recentMsgs.includes(dl) || historyResolvedTokens.some(t => t.toLowerCase() === dl)) {
-        if (!historyMatchedDistricts.includes(d.district)) historyMatchedDistricts.push(d.district);
-        if (!historyMatchedStates.includes(d.state)) historyMatchedStates.push(d.state);
-      }
-    });
-    
-    if (historyMatchedDistricts.length > 0) {
-      contextData.districtDetails = data.districts.filter(d => historyMatchedDistricts.includes(d.district));
-      contextData.stateSummaries = data.states.filter(s => historyMatchedStates.includes(s.state));
-    } else if (historyMatchedStates.length > 0) {
-      contextData.stateDetails = data.states.filter(s => historyMatchedStates.includes(s.state));
-    } else {
-      // Truly no match — pass national summary counts
-      contextData.nationalOverview = {
-        totalDistricts: data.districts.length,
-        safe: data.districts.filter(d => d.category === "Safe").length,
-        semiCritical: data.districts.filter(d => d.category === "Semi-Critical").length,
-        critical: data.districts.filter(d => d.category === "Critical").length,
-        overExploited: data.districts.filter(d => d.category === "Over-Exploited").length,
-      };
-    }
-  }
-  
-  // (Context construction handled above)
-
-  const prompt = `
-You are AquaGuide AI, a friendly and intelligent groundwater assistant for India.
-
-CONVERSATION RULES:
-- If the user says a greeting (hi, hello, hey, namaste, etc.), respond warmly and briefly. Introduce yourself and ask how you can help with groundwater queries. Do NOT dump data.
-- If the user says thanks, goodbye, okay, cool, etc., respond naturally and briefly like a human would.
-- If the user asks something unrelated to groundwater or water (like weather, sports, coding, etc.), politely say you specialize in groundwater intelligence and redirect them. 
-- If the user asks "what can you do" or "help", list your capabilities briefly.
-- ONLY use the DATA CONTEXT below when the user asks an actual groundwater/water-related question.
-
-CONTEXT AWARENESS (VERY IMPORTANT):
-- You receive the last few messages of the conversation. USE THEM to understand what the user is referring to.
-- If the user says "it", "this state", "that", "there", "which districts in it", etc., look at the previous messages to figure out which state/district they mean.
-- ALWAYS continue the conversation in the context of the topic being discussed. Do NOT switch to national data unless explicitly asked.
-- Understand common typos, grammatical errors, abbreviations, and informal language. Examples: "gimme", "wats", "hw is", "tel me", "show me abt", "kritical" = critical, "xploited" = exploited, "grndwater" = groundwater.
-
-DATA ACCURACY RULES (CRITICAL — FOLLOW STRICTLY):
-- You are part of the INGRES (India's National Ground Water Resource Estimation System).
-- You ONLY have CGWB (Central Ground Water Board) assessment data for FY 2024-25. NO other year exists.
-- If the user asks about 2023, 2022, 2020, or ANY other year: say "I only have FY 2024-25 data from CGWB. Would you like me to show that instead?"
-- NEVER fabricate, guess, estimate, or hallucinate ANY number. Every number you cite MUST come from the DATA CONTEXT below.
-- If a state, district, or block is NOT in the DATA CONTEXT, say "I don't have data for [name] in my database."
-- Do NOT use your general training knowledge for any data answers. ONLY use what is in DATA CONTEXT.
-
-AVAILABLE DATA FIELDS (per district/block):
-- Rainfall (mm), Geographical area (ha), Recharge worthy area
-- Ground Water Recharge (from rainfall, canals, irrigation, tanks, conservation structures)
-- Annual Ground Water Recharge, Environmental Flows
-- Annual Extractable Ground Water Resource
-- Ground Water Extraction for all uses
-- Stage of Ground Water Extraction (%) — this determines category: Safe (<70%), Semi-Critical (70-90%), Critical (90-100%), Over-Exploited (>100%)
-- Allocation for Domestic Use (projected 2025)
-- Net Annual Ground Water Availability for Future Use
-- Quality Tagging (what contaminants are present)
-- Additional Potential Resources (waterlogged, flood prone, spring discharge)
-- In-Storage resources (confined/unconfined, fresh/saline)
-
-
-WHEN ANSWERING DATA QUESTIONS, format systematically:
-
-1. **Start with a 1-2 sentence summary** of the big picture.
-
-2. **Use markdown headers** (##) to organize into sections like:
-   ## 📊 Overview
-   ## 🔍 Key Findings  
-   ## ⚠️ Critical Areas
-   ## 💡 Recommendations
-
-3. **Use bullet points** for multiple data points — never dump raw numbers in paragraphs.
-
-4. **Bold key numbers** like **86%** or **31 out of 36 units**.
-
-5. **NEVER use markdown tables** (no | pipes). Instead, use bullet points with bold labels for comparisons.
-
-6. **End with a Takeaway or Recommendation**.
-
-CHART RULES: When the query involves categories, comparisons, or distributions — include a chart at the VERY END:
-\`\`\`chart
-{
-  "type": "pie", 
-  "title": "Clear Title Here",
-  "labels": ["Label 1", "Label 2"],
-  "data": [10, 20]
-}
-\`\`\`
-Use "pie", "bar", "line", or "area". Use "line"/"area" for time trends.
-
-DATA CONTEXT:
-Source: CGWB INGRES (India's National Ground Water Resource Estimation System) — summaryData for FY 2024-25.
-The data is organized into logical groups for each district/block:
-- 🗺️ Geographical: Total area, recharge worthy area, hilly area.
-- 🌧️ Recharge: Annual groundwater recharge from Various sources.
-- 🌊 Environmental: Environmental flows (water reserved for nature).
-- ⛏️ Extractable: Annual extractable groundwater resource.
-- 🚰 Extraction: Groundwater extraction for domestic, industrial, and irrigation uses.
-- 📈 Stage: Stage of groundwater extraction (%) and Category (Safe, Semi-Critical, Critical, Over-Exploited).
-- 🏠 Allocation: Allocation for domestic use (projected 2025).
-- 🔓 Net Availability: Net groundwater availability for future use.
-- 🧪 Quality: Contaminants present (if any).
-
-${matchedStates.length > 0 ? `User query resolved to: ${matchedStates.join(", ")}${matchedDistricts.length > 0 ? ` (Districts: ${matchedDistricts.join(", ")})` : ""}` : "No specific state/district matched — showing national overview."}
-${JSON.stringify(contextData)}
-
-User Query: "${query}"
-`;
-
   try {
-    const openai = new OpenAI({ 
-      apiKey: apiKey, 
-      dangerouslyAllowBrowser: true 
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, data, chatHistory: chatHistory.slice(-6).map(m => ({ role: m.role, text: m.text })) })
     });
-    
-    // Build conversation history for context awareness
-    const historyMessages = chatHistory.slice(-6).map(m => ({
-      role: m.role === "ai" ? "assistant" : "user",
-      content: m.text
-    }));
-    
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: prompt },
-        ...historyMessages,
-        { role: "user", content: query }
-      ]
-    });
-    return { text: response.choices[0].message.content, data: null };
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to get response from AI');
+    }
+
+    const result = await response.json();
+    return { text: result.text, data: null };
   } catch (err) {
     console.error(err);
-    return { text: "Oops, there was an error communicating with OpenAI: " + err.message, data: null };
+    return { text: "Oops, there was an error communicating with our AI service: " + err.message, data: null };
   }
 }
 
@@ -341,12 +96,9 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
   const [loadingText, setLoadingText] = useState("Consulting CGWB...");
-  const [streamingIdx, setStreamingIdx] = useState(-1); // index of currently streaming message
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_OPENAI_API_KEY || localStorage.getItem("OPENAI_KEY") || "");
+  const [streamingIdx, setStreamingIdx] = useState(-1);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
-  // Tracks active session ID synchronously — prevents duplicate sessions
-  // when messages state updates twice (user msg + AI reply) before setState settles.
   const activeSessionRef = useRef(null);
 
   useEffect(() => { 
@@ -380,7 +132,6 @@ export default function Chatbot() {
   
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [messages, typing]);
 
-  // Persist messages to active session
   useEffect(() => {
     if (messages.length === 0 || !user) return;
 
@@ -401,29 +152,24 @@ export default function Chatbot() {
       updatedAt: new Date().toISOString()
     };
 
-    // Use the ref (not state) so we always read the latest ID synchronously.
-    // This prevents the AI reply from creating a second session before
-    // setActiveSessionId has re-rendered.
     const currentId = activeSessionRef.current;
 
     if (currentId) {
-      // Update existing session
       setSessions(prev =>
         prev.map(s => s.id === currentId ? { ...s, ...sessionData } : s)
       );
       setDoc(doc(db, "chat_sessions", currentId), sessionData, { merge: true }).catch(console.error);
     } else {
-      // Create new session — generate ID immediately and store in ref
       const newId = Date.now().toString();
-      activeSessionRef.current = newId;   // set ref synchronously
-      setActiveSessionId(newId);          // also update state for UI
+      activeSessionRef.current = newId;
+      setActiveSessionId(newId);
       setSessions(prev => [{ id: newId, ...sessionData }, ...prev]);
       setDoc(doc(db, "chat_sessions", newId), sessionData).catch(console.error);
     }
   }, [messages]);
 
   const startNewChat = () => {
-    activeSessionRef.current = null;   // clear ref synchronously
+    activeSessionRef.current = null;
     setActiveSessionId(null);
     setMessages([]);
     setSuggestions(pickRandom(SUGGESTION_POOL, 4));
@@ -432,7 +178,7 @@ export default function Chatbot() {
   const loadSession = (id) => {
     const s = sessions.find(s => s.id === id);
     if (s) {
-      activeSessionRef.current = id;   // keep ref in sync
+      activeSessionRef.current = id;
       setActiveSessionId(id);
       setMessages(s.messages.map(m => ({ ...m, ts: new Date(m.ts) })));
     }
@@ -457,7 +203,6 @@ export default function Chatbot() {
     setInput("");
     setMessages(m => [...m, { role:"user", text:q, ts:new Date() }]);
     
-    // Rotating creative loader
     const loaders = [
       "Consulting CGWB...",
       "Analyzing aquifer data...",
@@ -471,27 +216,20 @@ export default function Chatbot() {
     
     setTyping(true);
     
-    // Quick delay for UI feel
     await new Promise(r => setTimeout(r, 600));
     
-    const res = await getOpenAIResponse(q, parsedData, apiKey, messages);
+    const res = await getChatAIResponse(q, parsedData, messages);
     setTyping(false);
 
-    // Add AI message with empty text, then stream it word by word
     const fullText = res.text;
     const aiMsg = { role:"ai", text:"", data:res.data, ts:new Date() };
     setMessages(m => [...m, aiMsg]);
-    setStreamingIdx(prev => {
-      // will be set to messages.length (the index of the new msg)
-      return -2; // trigger below
-    });
+    setStreamingIdx(-2);
 
-    // Stream line-by-line (tables need complete blocks to render)
     const lines = fullText.split("\n");
     let accumulated = "";
     let i = 0;
     while (i < lines.length) {
-      // Detect table blocks (lines starting with |) and buffer them
       if (lines[i].trimStart().startsWith("|")) {
         let tableBlock = "";
         while (i < lines.length && lines[i].trimStart().startsWith("|")) {
@@ -507,7 +245,6 @@ export default function Chatbot() {
         });
         await new Promise(r => setTimeout(r, 60));
       } else {
-        // Stream normal lines word-by-word
         const lineWords = lines[i].split(/( )/);
         const linePrefix = accumulated ? accumulated + "\n" : "";
         let lineAccum = "";
@@ -537,7 +274,6 @@ export default function Chatbot() {
       <style>{css}</style>
       <div style={{ display:"flex", height:"100vh", background:"var(--bg)", overflow:"hidden" }}>
 
-        {/* Sidebar */}
         <aside style={{ width:260, background:"var(--bg2)", borderRight:"1px solid var(--border)", display:"flex", flexDirection:"column" }}>
           <div style={{ padding:"20px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:10 }}>
             <button onClick={()=>navigate("/dashboard")} style={{ background:"none", border:"none", color:"var(--muted)", cursor:"pointer", fontSize:18, lineHeight:1 }}>←</button>
@@ -578,9 +314,7 @@ export default function Chatbot() {
           </div>
         </aside>
 
-        {/* Chat area */}
         <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
-          {/* Header */}
           <div style={{ padding:"16px 24px", borderBottom:"1px solid var(--border)", background:"var(--bg2)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div>
               <div style={{ fontFamily:"var(--font-display)", fontWeight:700, fontSize:18 }}>Groundwater Intelligence</div>
@@ -588,18 +322,6 @@ export default function Chatbot() {
                 <span style={{ display:"flex", alignItems:"center", gap:6 }}>
                   CGWB FY 2024-25 · ~713 assessment districts
                 </span>
-                {!import.meta.env.VITE_OPENAI_API_KEY && (
-                  <input 
-                    type="password" 
-                    placeholder="Paste OpenAI API Key to enable AI"
-                    value={apiKey}
-                    onChange={e => {
-                      setApiKey(e.target.value);
-                      localStorage.setItem("OPENAI_KEY", e.target.value);
-                    }}
-                    style={{ background:"rgba(0,0,0,0.3)", border:"1px solid var(--border)", color:"var(--accent)", padding:"4px 8px", borderRadius:4, fontSize:11, outline:"none", fontFamily:"var(--font-mono)", width:230 }}
-                  />
-                )}
               </div>
             </div>
             <div style={{ display:"flex", gap:8 }}>
