@@ -8,10 +8,10 @@ import {
 } from "firebase/firestore";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
 import { Pie, Bar } from "react-chartjs-2";
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 /* ─────────────────────────────────────────────────────────────
    NOTE: sorting is done CLIENT-SIDE so no composite index is
@@ -115,6 +115,32 @@ html, body { background:var(--bg); color:var(--text); font-family:var(--font-bod
 .toast.ok  { background:var(--surface); border:1px solid rgba(0,168,232,0.3); color:var(--accent); }
 .toast.err { background:var(--surface); border:1px solid rgba(232,64,64,0.3);  color:#e84040; }
 
+/* ── Sidebar Desktop ── */
+.sidebar-desktop {
+  transition:all 0.4s cubic-bezier(.22, 1, .36, 1);
+}
+
+@media (max-width: 768px) {
+  .sidebar-desktop {
+    position:fixed!important;
+    left:-320px; top:0; bottom:0;
+    z-index:999;
+    box-shadow:24px 0 60px rgba(0,0,0,0.5);
+  }
+  .sidebar-desktop.mobile-open {
+    left:0;
+  }
+}
+
+/* ── Hamburger ── */
+.hamburger-btn {
+  display:none; transition:all 0.2s;
+}
+@media (max-width: 768px) {
+  .hamburger-btn { display:flex; }
+  .sidebar-desktop { width:280px!important; }
+}
+
 /* ── Markdown ── */
 .ai-md p  { margin-bottom:10px; line-height:1.65; }
 .ai-md ul, .ai-md ol { padding-left:20px; margin-bottom:10px; }
@@ -177,6 +203,7 @@ export default function History() {
   const [modal,    setModal]    = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [toast,    setToast]    = useState(null); // { msg, kind }
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   /* ── Load sessions ── */
   useEffect(() => {
@@ -254,9 +281,17 @@ export default function History() {
     <>
       <style>{css}</style>
       <div style={{ display:"flex", height:"100vh", background:"var(--bg)", overflow:"hidden" }}>
+        
+        {/* Mobile Overlay */}
+        {mobileSidebarOpen && (
+          <div 
+            onClick={() => setMobileSidebarOpen(false)}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 998, backdropFilter: "blur(4px)" }}
+          />
+        )}
 
         {/* ── SIDEBAR ─────────────────────────────────────── */}
-        <aside style={{ width:320, background:"var(--bg2)", borderRight:"1px solid var(--border)", display:"flex", flexDirection:"column", flexShrink:0 }}>
+        <aside className={`sidebar-desktop${mobileSidebarOpen ? ' mobile-open' : ''}`} style={{ width:320, background:"var(--bg2)", borderRight:"1px solid var(--border)", display:"flex", flexDirection:"column", flexShrink:0 }}>
 
           {/* Header */}
           <div style={{ padding:"16px 16px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:10 }}>
@@ -376,16 +411,26 @@ export default function History() {
           {selected ? (
             <>
               {/* Transcript header */}
-              <div style={{ padding:"16px 26px", borderBottom:"1px solid var(--border)", background:"var(--bg2)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:14, flexShrink:0 }}>
-                <div style={{ minWidth:0, flex:1 }}>
-                  <h2 style={{ fontFamily:"var(--font-display)", margin:0, fontSize:19, color:"var(--accent)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                    {selected.title || "Untitled Chat"}
-                  </h2>
-                  <div style={{ fontSize:11, color:"var(--muted)", fontFamily:"var(--font-mono)", marginTop:4, display:"flex", gap:14 }}>
-                    <span>🕐 {fmtFull(selected.updatedAt)}</span>
-                    <span>💬 {selected.messages?.length||0} messages</span>
+              <div style={{ padding:"16px 20px", borderBottom:"1px solid var(--border)", background:"var(--bg2)", display:"flex", justifyContent:"space-between", alignItems:"center", gap:14, flexShrink:0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+                  <button 
+                    className="hamburger-btn" 
+                    onClick={() => setMobileSidebarOpen(true)}
+                    style={{ background: "none", border: "none", color: "var(--text)", fontSize: 20, cursor: "pointer", padding: 0 }}
+                  >
+                    ☰
+                  </button>
+                  <div style={{ minWidth: 0 }}>
+                    <h2 style={{ fontFamily:"var(--font-display)", margin:0, fontSize:17, color:"var(--accent)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {selected.title || "Untitled Chat"}
+                    </h2>
+                    <div style={{ fontSize:11, color:"var(--muted)", fontFamily:"var(--font-mono)", marginTop:4, display:"flex", gap:14 }}>
+                      <span>🕐 {fmtFull(selected.updatedAt)}</span>
+                      <span>💬 {selected.messages?.length||0} messages</span>
+                    </div>
                   </div>
                 </div>
+
                 <div style={{ display:"flex", gap:8, flexShrink:0 }}>
                   <button className="btn-ghost" onClick={()=>navigate("/chatbot")}>💬 Continue</button>
                   <button className="btn-danger" onClick={e=>{ e.stopPropagation(); setModal({type:"one",id:selected.id}); }}>🗑 Delete</button>
@@ -415,11 +460,13 @@ export default function History() {
                             <ReactMarkdown
                               rehypePlugins={[rehypeRaw]}
                               components={{
-                                code({ node, inline, className, children, ...props }) {
+                                code({ inline, className, children, ...props }) {
                                   const match = /language-(\w+)/.exec(className || "");
                                   if (!inline && match && match[1] === "chart") {
                                     try {
-                                      const chartConfig = JSON.parse(String(children).replace(/\n/g, ""));
+                                      // Clean up common quirks in LLM-generated JSON
+                                      const jsonStr = String(children).trim().replace(/\n/g, "").replace(/,\s*}/g, "}").replace(/,\s*]/g, "]");
+                                      const chartConfig = JSON.parse(jsonStr);
                                       const chartData = {
                                         labels: chartConfig.labels,
                                         datasets: [{
@@ -487,7 +534,7 @@ export default function History() {
                                             : <Bar  data={chartData} options={options} />}
                                         </div>
                                       );
-                                    } catch (e) {
+                                    } catch {
                                       return <code>{children}</code>;
                                     }
                                   }

@@ -132,22 +132,19 @@ const styles = `
     text-shadow: 0 0 20px var(--accent);
   }
 
-  /* Nav link underline sweep */
-  .nav-link {
-    position: relative;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s;
+  /* Nav frosted glass */
+  .nav-active {
+    background: var(--surface-glass) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid var(--border) !important;
   }
-  .nav-link::after {
-    content: '';
-    position: absolute; bottom: -3px; left: 0;
-    width: 0; height: 1px;
-    background: var(--accent);
-    transition: width 0.3s ease;
+
+  @media (max-width: 768px) {
+    .hero-h1 { font-size: var(--fluid-h1) !important; }
+    .hero-p { font-size: 16px !important; }
+    .nav-desktop { display: none !important; }
+    .landing-nav { padding: 12px 20px !important; }
   }
-  .nav-link:hover { color: var(--accent); }
-  .nav-link:hover::after { width: 100%; }
 `;
 
 /* ── useInView hook ── */
@@ -198,6 +195,9 @@ export default function Landing() {
 
   /* ── Hero parallax offset ── */
   const [parallaxY, setParallaxY] = useState(0);
+
+  /* ── Mobile Menu State ── */
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => {
@@ -358,15 +358,14 @@ export default function Landing() {
       {/* ════════════════════════════════════
           NAV
       ════════════════════════════════════ */}
-      <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+      {/* ════════════════════════════════════
+          NAV
+      ════════════════════════════════════ */}
+      <nav className={`landing-nav ${scrolled ? 'nav-active' : ''}`} style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "16px 56px",
-        background: scrolled ? (theme === 'dark' ? "rgba(3,13,20,0.92)" : "rgba(240,244,248,0.92)") : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: scrolled ? "1px solid var(--border)" : "1px solid transparent",
         transition: "all 0.4s cubic-bezier(.22,1,.36,1)",
-        transform: scrolled ? "translateY(0)" : "translateY(0)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
@@ -385,15 +384,16 @@ export default function Landing() {
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: 36, fontSize: 14, fontWeight: 500 }}>
+        {/* Desktop Links */}
+        <div className="nav-desktop" style={{ display: "flex", gap: 36, fontSize: 14, fontWeight: 500 }}>
           {["Features","Data","Map","About"].map(l => (
             <a key={l} href={`#${l.toLowerCase()}`} className="nav-link">{l}</a>
           ))}
         </div>
 
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <ThemeToggle />
-          <button className="btn-ripple" style={{
+          <div className="resp-hide-mobile"><ThemeToggle /></div>
+          <button className="btn-ripple resp-hide-mobile" style={{
             padding: "9px 22px", borderRadius: 8, border: "1px solid var(--border)",
             background: "transparent", color: "var(--text)", fontSize: 14, fontWeight: 500,
             cursor: "pointer", transition: "all 0.25s", fontFamily: "var(--font-body)",
@@ -402,7 +402,8 @@ export default function Landing() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.background = "transparent"; }}
             onClick={() => navigate('/login')}
           >Login</button>
-          <button className="btn-ripple" style={{
+          
+          <button className="btn-ripple resp-hide-mobile" style={{
             padding: "9px 22px", borderRadius: 8, border: "none",
             background: "var(--accent)", color: "var(--btn-text)", fontSize: 14, fontWeight: 600,
             cursor: "pointer", transition: "all 0.25s", fontFamily: "var(--font-body)",
@@ -412,13 +413,39 @@ export default function Landing() {
             onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 0 20px var(--accent-glow)"; }}
             onClick={() => navigate('/register')}
           >Get Started</button>
+
+          {/* Mobile Hamburger */}
+          <button 
+            className="hamburger-btn" 
+            onClick={() => setMobileNavOpen(!mobileNavOpen)}
+            style={{ position: 'relative', top: 0, left: 0, display: window.innerWidth <= 768 ? 'flex' : 'none' }}
+          >
+            {mobileNavOpen ? '✕' : '☰'}
+          </button>
+        </div>
+
+        {/* Mobile Nav Overlay */}
+        <div style={{
+          position: "fixed", top: 0, left: mobileNavOpen ? 0 : "100%", width: "100%", height: "100vh",
+          background: "var(--bg)", zIndex: 999, transition: "left 0.4s ease",
+          padding: "100px 32px", display: "flex", flexDirection: "column", gap: 24
+        }}>
+          {["Features","Data","Map","About"].map(l => (
+            <a key={l} href={`#${l.toLowerCase()}`} onClick={() => setMobileNavOpen(false)} style={{ fontSize: 24, fontWeight: 700, color: "var(--text)", textDecoration: "none" }}>{l}</a>
+          ))}
+          <hr style={{ border: "none", borderTop: "1px solid var(--border)" }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+             <button className="resp-full-btn" style={{ padding: "14px", borderRadius: 10, background: "var(--accent)", color: "var(--btn-text)", border: "none", fontWeight: 700 }} onClick={() => navigate('/login')}>Login</button>
+             <button className="resp-full-btn" style={{ padding: "14px", borderRadius: 10, background: "var(--surface)", color: "var(--text)", border: "1px solid var(--border)", fontWeight: 700 }} onClick={() => navigate('/register')}>Register</button>
+             <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20 }}><ThemeToggle /></div>
+          </div>
         </div>
       </nav>
 
       {/* ════════════════════════════════════
           HERO
       ════════════════════════════════════ */}
-      <section ref={heroRef} style={{
+      <section ref={heroRef} className="resp-pad-section" style={{
         position: "relative", minHeight: "100vh",
         display: "flex", alignItems: "center",
         padding: "120px 56px 80px",
@@ -468,7 +495,7 @@ export default function Landing() {
             </span>
           </div>
 
-          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "clamp(42px, 6vw, 72px)", lineHeight: 1.1, marginBottom: 24, animation: "fadeUp 0.7s cubic-bezier(.22,1,.36,1) 0.22s both" }}>
+          <h1 className="hero-h1" style={{ fontFamily: "var(--font-display)", fontWeight: 900, fontSize: "var(--fluid-h1)", lineHeight: 1.1, marginBottom: 24, animation: "fadeUp 0.7s cubic-bezier(.22,1,.36,1) 0.22s both" }}>
             India's Groundwater<br />
             <span style={{ color: "var(--accent)", fontStyle: "italic" }}>Intelligence</span> Layer
           </h1>
@@ -487,8 +514,8 @@ export default function Landing() {
           </div>
 
           {/* CTA row */}
-          <div style={{ display: "flex", gap: 14, animation: "fadeUp 0.7s cubic-bezier(.22,1,.36,1) 0.52s both" }}>
-            <button className="btn-ripple" style={{
+          <div className="resp-stack-mobile" style={{ display: "flex", gap: 14, animation: "fadeUp 0.7s cubic-bezier(.22,1,.36,1) 0.52s both" }}>
+            <button className="btn-ripple resp-full-btn" style={{
               padding: "14px 32px", borderRadius: 10, border: "none",
               background: "var(--accent)", color: "var(--btn-text)", fontSize: 15, fontWeight: 700,
               cursor: "pointer", fontFamily: "var(--font-body)",
@@ -496,8 +523,9 @@ export default function Landing() {
             }}
               onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px) scale(1.02)"; e.currentTarget.style.boxShadow = "0 8px 40px var(--accent-glow)"; }}
               onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 0 28px var(--accent-glow)"; }}
+              onClick={() => navigate('/chatbot')}
             >Launch Chatbot →</button>
-            <button className="btn-ripple" style={{
+            <button className="btn-ripple resp-full-btn" style={{
               padding: "14px 32px", borderRadius: 10,
               border: "1px solid var(--border)", background: "transparent",
               color: "var(--text)", fontSize: 15, fontWeight: 500,
@@ -505,11 +533,12 @@ export default function Landing() {
             }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.color = "var(--accent)"; e.currentTarget.style.background = "var(--accent-dim)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text)"; e.currentTarget.style.background = "transparent"; e.currentTarget.style.transform = ""; }}
+              onClick={() => navigate('/dashboard')}
             >Explore Data</button>
           </div>
 
           {/* Stats */}
-          <div style={{ display: "flex", gap: 32, marginTop: 56, animation: "fadeUp 0.7s cubic-bezier(.22,1,.36,1) 0.64s both" }}>
+          <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32, marginTop: 56, animation: "fadeUp 0.7s cubic-bezier(.22,1,.36,1) 0.64s both" }}>
             {[["713", "+", "Districts"], ["36", "", "States & UTs"], ["", "Real-time", "AI Queries"], ["", "CGWB", "Verified Data"]].map(([num, suffix, label], i) => (
               <div key={label} style={{ cursor: "default" }}>
                 <div className="stat-val" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 24, color: "var(--accent)" }}>
@@ -541,9 +570,9 @@ export default function Landing() {
       {/* ════════════════════════════════════
           CHAT PREVIEW
       ════════════════════════════════════ */}
-      <section id="features" style={{ padding: "100px 56px", background: "var(--bg2)" }}>
+      <section id="features" className="resp-pad-section" style={{ padding: "100px 56px", background: "var(--bg2)" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+          <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
 
             {/* Left copy — slide in from left */}
             <div className="reveal-left">
@@ -663,7 +692,7 @@ export default function Landing() {
       {/* ════════════════════════════════════
           MAP
       ════════════════════════════════════ */}
-      <section id="map" style={{ padding: "100px 56px", background: "var(--bg)" }}>
+      <section id="map" className="resp-pad-section" style={{ padding: "100px 56px", background: "var(--bg)" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="reveal" style={{ textAlign: "center", marginBottom: 56 }}>
             <span style={{ fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--accent)", fontWeight: 600, fontFamily: "var(--font-mono)" }}>Map Visualization</span>
@@ -675,7 +704,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 40, alignItems: "start" }}>
+          <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 40, alignItems: "start" }}>
             <div className="reveal-left" style={{ position: "relative", background: "var(--surface)", borderRadius: 18, border: "1px solid var(--border)", overflow: "hidden", height: 420, boxShadow: "0 24px 60px rgba(0,0,0,0.35)", transition: "box-shadow 0.4s" }}
               onMouseEnter={e => e.currentTarget.style.boxShadow = "0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,168,232,0.08)"}
               onMouseLeave={e => e.currentTarget.style.boxShadow = "0 24px 60px rgba(0,0,0,0.35)"}
@@ -794,7 +823,7 @@ export default function Landing() {
               Built for <em style={{ color: "var(--accent)" }}>Groundwater Experts</em>
             </h2>
           </div>
-          <div className="stagger" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div className="resp-grid-3 stagger" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
             {features.map((f, i) => (
               <div key={i} className="card-shimmer" style={{ padding: "28px 26px", borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", transition: "all 0.35s cubic-bezier(.22,1,.36,1)", cursor: "default" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,168,232,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = "0 16px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,168,232,0.06)"; e.currentTarget.style.background = "var(--surface-hover)"; }}
@@ -845,10 +874,8 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════
-          FOOTER
-      ════════════════════════════════════ */}
-      <footer style={{ padding: "36px 56px", borderTop: "1px solid var(--border)", background: "var(--bg2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      {/* ─── FOOTER ───────────────────────────────── */}
+      <footer className="resp-footer" style={{ padding: "36px 56px", borderTop: "1px solid var(--border)", background: "var(--bg2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, var(--accent2), var(--accent))", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 900, color: "var(--btn-text)", fontSize: 11, transition: "transform 0.3s" }}
             onMouseEnter={e => e.currentTarget.style.transform = "rotate(10deg) scale(1.1)"}

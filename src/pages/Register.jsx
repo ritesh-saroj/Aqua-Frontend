@@ -61,7 +61,7 @@ export default function Register() {
   return (
     <>
       <style>{css}</style>
-      <div style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", overflow:"hidden", position:"relative", transition:"background 0.35s" }}>
+      <div className="resp-flex-col" style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", overflowX:"hidden", position:"relative", transition:"background 0.35s" }}>
         {/* Left Panel */}
         <div className="auth-left-panel" style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"center", padding:"60px", position:"relative", overflow:"hidden" }}>
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(135deg, var(--bg2), var(--bg))" }} />

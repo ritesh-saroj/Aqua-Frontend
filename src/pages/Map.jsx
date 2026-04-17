@@ -57,6 +57,8 @@ export default function Map() {
   const [search, setSearch]       = useState("");
   const [filterCat, setFilterCat] = useState("All");
   const [panelTab, setPanelTab]   = useState("layers"); // "layers" | "districts"
+  const [panelOpen, setPanelOpen] = useState(false); // Mobile panel state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // Mobile sidebar state
 
   const filteredDistricts = useMemo(() => {
     const q = search.toLowerCase();
@@ -169,20 +171,51 @@ export default function Map() {
   const toggleLayer = (id) => setLayers(prev => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div style={{ display: "flex", height: "100vh", background: "var(--bg)", fontFamily: "var(--font-ui)", color: "var(--text)", overflow: "hidden", transition: "background 0.35s, color 0.35s" }}>
+    <div style={{ display: "flex", height: "100vh", background: "var(--bg)", fontFamily: "var(--font-ui)", color: "var(--text)", overflow: "hidden", transition: "background 0.35s, color 0.35s", position: 'relative' }}>
       <style>{`
         .district-card:hover { background:var(--surface-hover)!important;border-color:var(--border)!important; }
         .layer-row:hover { background:var(--bg2)!important; }
         .stat-pill:hover { opacity:.85; }
       `}</style>
 
-      <Sidebar />
+      {/* Hamburger button for Global Sidebar */}
+      <button
+        className="hamburger-btn"
+        onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        style={{ display: mobileSidebarOpen ? 'none' : 'flex', zIndex: 1100 }}
+      >
+        ☰
+      </button>
+
+      {/* Global Sidebar Overlay */}
+      <div
+        className={`sidebar-overlay${mobileSidebarOpen ? ' active' : ''}`}
+        onClick={() => setMobileSidebarOpen(false)}
+        style={{ display: mobileSidebarOpen ? 'block' : 'none', zIndex: 1050 }}
+      />
+
+      <Sidebar mobileOpen={mobileSidebarOpen} setMobileOpen={setMobileSidebarOpen} />
 
       {/* ── Right area: map panel + right sidebar ───────────────────────── */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+        
+        {/* Mobile Panel Toggle (Floating) */}
+        <button 
+          className="map-panel-toggle"
+          onClick={() => setPanelOpen(!panelOpen)}
+          style={{
+            position: 'fixed', right: 20, bottom: 20, width: 52, height: 52,
+            borderRadius: '50%', background: 'var(--accent)', color: 'var(--bg)',
+            border: 'none', boxShadow: '0 8px 24px var(--accent-glow)',
+            zIndex: 850, display: window.innerWidth <= 768 ? 'flex' : 'none',
+            alignItems: 'center', justifyContent: 'center', fontSize: 20, cursor: 'pointer', transition: 'all 0.3s'
+          }}
+        >
+          {panelOpen ? '✕' : '⚙️'}
+        </button>
 
         {/* Top bar */}
-        <div style={{
+        <div className="resp-hide-mobile" style={{
           height: 52, flexShrink: 0, display: "flex", alignItems: "center",
           padding: "0 20px", gap: 12, background: "var(--bg)",
           borderBottom: "1px solid var(--border)", transition: "background 0.35s, border-color 0.35s",
@@ -273,7 +306,7 @@ export default function Map() {
           </div>
 
           {/* ── Right panel ─────────────────────────────────────────────── */}
-          <div style={{
+          <div className={`map-right-panel${panelOpen ? ' mobile-open' : ''}`} style={{
             width: 300, flexShrink: 0, display: "flex", flexDirection: "column",
             background: "var(--bg)", borderLeft: "1px solid var(--border)", zIndex: 800,
           }}>

@@ -123,32 +123,32 @@ export default function Dashboard() {
             <>
 
               {/* Header */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, animation: "fadeUp 0.5s ease both" }}>
+              <div className="resp-flex-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32, animation: "fadeUp 0.5s ease both", gap: 20 }}>
                 <div>
                   <div style={{ fontSize: 12, color: "var(--muted)", fontFamily: "var(--font-mono)", letterSpacing: "0.08em", marginBottom: 6 }}>
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", display: "inline-block", marginRight: 6, animation: "pulse-dot 1.5s infinite" }} />
                     FY 2024-25 DATA CONNECTED · {new Date().toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                   </div>
-                  <h1 style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px,3vw,34px)", fontWeight: 900, lineHeight: 1.15 }}>
+                  <h1 style={{ fontFamily: "var(--font-display)", fontSize: "var(--fluid-h2)", fontWeight: 900, lineHeight: 1.15 }}>
                     {greeting},{" "}
                     <em style={{ color: "var(--accent)" }}>{user?.displayName?.split(" ")[0] || "Explorer"}</em>
                   </h1>
                   <p style={{ color: "var(--muted)", fontSize: 14, marginTop: 4, fontWeight: 300 }}>India groundwater intelligence — ask anything.</p>
                 </div>
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", width: window.innerWidth <= 768 ? '100%' : 'auto' }}>
                   {/* Export Button */}
-                  <div style={{ position: "relative" }}>
+                  <div style={{ position: "relative", flex: 1 }}>
                     <button
                       onClick={() => setShowExportMenu(!showExportMenu)}
-                      className="export-dash-btn"
+                      className="export-dash-btn resp-full-btn"
                       style={{
-                        display: "flex", alignItems: "center", gap: 6, padding: "10px 18px",
+                        display: "flex", alignItems: "center", justifyContent: 'center', gap: 6, padding: "10px 18px",
                         background: "transparent", border: "1px solid var(--border)", borderRadius: 10,
                         color: "var(--muted)", fontSize: 12, fontWeight: 600, cursor: "pointer",
-                        fontFamily: "var(--font-body)", transition: "all 0.25s"
+                        fontFamily: "var(--font-body)", transition: "all 0.25s", width: '100%'
                       }}
                     >
-                      ⬇ Export Data
+                      ⬇ Export
                     </button>
                     {showExportMenu && (
                       <div style={{
@@ -172,16 +172,16 @@ export default function Dashboard() {
                       </div>
                     )}
                   </div>
-                  <button onClick={() => navigate("/chatbot")} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", background: "var(--accent)", border: "none", borderRadius: 10, color: "var(--btn-text)", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-body)", boxShadow: "0 0 24px rgba(0,168,232,0.3)", transition: "all 0.25s", animation: "fadeUp 0.5s ease 0.1s both" }}
+                  <button className="resp-full-btn" onClick={() => navigate("/chatbot")} style={{ display: "flex", alignItems: "center", justifyContent: 'center', gap: 8, padding: "12px 24px", background: "var(--accent)", border: "none", borderRadius: 10, color: "var(--btn-text)", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-body)", boxShadow: "0 0 24px rgba(0,168,232,0.3)", transition: "all 0.25s", animation: "fadeUp 0.5s ease 0.1s both", flex: 1.5 }}
                     onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(0,168,232,0.35)"; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 0 24px rgba(0,168,232,0.3)"; }}>
-                    💬 Ask AI Now
+                    💬 Ask AI
                   </button>
                 </div>
               </div>
 
               {/* Stat Cards */}
-              <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
+              <div className="resp-grid-4" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
                 {stats.map((s, i) => (
                   <div key={s.label} className="stat-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "20px", transition: "all 0.3s", cursor: "default", animation: `fadeUp 0.5s ease ${i * 0.08}s both` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
@@ -195,7 +195,7 @@ export default function Dashboard() {
               </div>
 
               {/* Main grid */}
-              <div className="resp-flex-col" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, marginBottom: 20 }}>
+              <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, marginBottom: 20 }}>
 
                 {/* Quick actions */}
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px", animation: "fadeUp 0.5s ease 0.2s both" }}>
@@ -238,7 +238,7 @@ export default function Dashboard() {
               </div>
 
               {/* Recommendations + Trend Row */}
-              <div className="resp-flex-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+              <div className="resp-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
 
                 {/* 🆕 Recommendations Card */}
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "24px", animation: "fadeUp 0.5s ease 0.3s both" }}>

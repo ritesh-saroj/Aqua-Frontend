@@ -43,7 +43,7 @@ export default function Login() {
 
   return (
     <>
-      <div style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", overflow:"hidden", position:"relative", transition:"background 0.35s" }}>
+      <div className="resp-flex-col" style={{ minHeight:"100vh", background:"var(--bg)", display:"flex", overflowX:"hidden", position:"relative", transition:"background 0.35s" }}>
 
         {/* Left decorative panel */}
         <div className="auth-left-panel" style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"center", padding:"60px", position:"relative", overflow:"hidden" }}>

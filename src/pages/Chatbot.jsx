@@ -100,6 +100,7 @@ export default function Chatbot() {
   const [typing, setTyping] = useState(false);
   const [loadingText, setLoadingText] = useState("Consulting CGWB...");
   const [streamingIdx, setStreamingIdx] = useState(-1);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
   const activeSessionRef = useRef(null);
@@ -277,18 +278,38 @@ export default function Chatbot() {
       <style>{css}</style>
       <div style={{ display:"flex", height:"100vh", background:"var(--bg)", overflow:"hidden" }}>
 
-        <aside style={{ width:260, background:"var(--bg2)", borderRight:"1px solid var(--border)", display:"flex", flexDirection:"column" }}>
-          <div style={{ padding:"20px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", gap:10 }}>
-            <button onClick={()=>navigate("/dashboard")} style={{ background:"none", border:"none", color:"var(--muted)", cursor:"pointer", fontSize:18, lineHeight:1 }}>←</button>
-            <div style={{ width:32, height:32, borderRadius:9, background:"linear-gradient(135deg, #0078d4, #00a8e8)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-display)", fontWeight:900, color:"var(--btn-text)", fontSize:13, boxShadow:"0 0 14px rgba(0,168,232,0.2)", cursor:"pointer" }} onClick={() => navigate('/')}>
-                <img src="/ingres.svg" alt="" />
-            </div>
-            <div>
-              <div style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-display)" }}>AquaGuide AI</div>
-              <div style={{ fontSize:10, color:"var(--accent)", fontFamily:"var(--font-mono)", display:"flex", alignItems:"center", gap:4 }}>
-                <span style={{ width:5, height:5, borderRadius:"50%", background:"var(--accent)", display:"inline-block", animation:"pulse-dot 1.5s infinite" }} />Online
+        {/* Hamburger button */}
+        <button
+          className="hamburger-btn"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          style={{ display: mobileOpen ? 'none' : 'flex', zIndex: 1100 }}
+        >
+          ☰
+        </button>
+
+        {/* Mobile overlay */}
+        <div
+          className={`sidebar-overlay${mobileOpen ? ' active' : ''}`}
+          onClick={() => setMobileOpen(false)}
+          style={{ display: mobileOpen ? 'block' : 'none', zIndex: 1050 }}
+        />
+
+        <aside className={`sidebar-desktop${mobileOpen ? ' mobile-open' : ''}`} style={{ width:260, background:"var(--bg2)", borderRight:"1px solid var(--border)", display:"flex", flexDirection:"column", zIndex: 1060 }}>
+          <div style={{ padding:"20px", borderBottom:"1px solid var(--border)", display:"flex", alignItems:"center", justifyContent: 'space-between', gap:10 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={()=>navigate("/dashboard")} style={{ background:"none", border:"none", color:"var(--muted)", cursor:"pointer", fontSize:18, lineHeight:1 }}>←</button>
+              <div style={{ width:32, height:32, borderRadius:9, background:"linear-gradient(135deg, #0078d4, #00a8e8)", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-display)", fontWeight:900, color:"var(--btn-text)", fontSize:13, boxShadow:"0 0 14px rgba(0,168,232,0.2)", cursor:"pointer" }} onClick={() => navigate('/')}>
+                  <img src="/ingres.svg" alt="" />
+              </div>
+              <div className="resp-hide-mobile">
+                <div style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-display)" }}>AquaGuide AI</div>
+                <div style={{ fontSize:10, color:"var(--accent)", fontFamily:"var(--font-mono)", display:"flex", alignItems:"center", gap:4 }}>
+                  <span style={{ width:5, height:5, borderRadius:"50%", background:"var(--accent)", display:"inline-block", animation:"pulse-dot 1.5s infinite" }} />Online
+                </div>
               </div>
             </div>
+            {/* Mobile close */}
+            <button className="resp-hide-desktop" onClick={() => setMobileOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--muted)', fontSize: 20 }}>✕</button>
           </div>
 
           <div style={{ padding:"16px", borderBottom:"1px solid var(--border)" }}>
@@ -318,16 +339,16 @@ export default function Chatbot() {
         </aside>
 
         <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
-          <div style={{ padding:"16px 24px", borderBottom:"1px solid var(--border)", background:"var(--bg2)", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <div>
-              <div style={{ fontFamily:"var(--font-display)", fontWeight:700, fontSize:18 }}>Groundwater Intelligence</div>
-              <div style={{ fontSize:12, color:"var(--muted)", fontFamily:"var(--font-mono)", display:"flex", gap:15, alignItems:"center", marginTop:4 }}>
+          <div className="resp-pad-section" style={{ padding:"16px 24px", borderBottom:"1px solid var(--border)", background:"var(--bg2)", display:"flex", alignItems:"center", justifyContent:"space-between", gap: 10 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily:"var(--font-display)", fontWeight:700, fontSize:18, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Groundwater Intelligence</div>
+              <div className="resp-hide-mobile" style={{ fontSize:12, color:"var(--muted)", fontFamily:"var(--font-mono)", display:"flex", gap:15, alignItems:"center", marginTop:4 }}>
                 <span style={{ display:"flex", alignItems:"center", gap:6 }}>
                   CGWB FY 2024-25 · ~713 assessment districts
                 </span>
               </div>
             </div>
-            <div style={{ display:"flex", gap:8 }}>
+            <div className="resp-hide-mobile" style={{ display:"flex", gap:8 }}>
               {["Safe","Semi-Critical","Critical","Over-Exploited"].map((s,i)=>{
                 const c=["var(--accent)","#f0dc3a","#f5a623","#e84040"][i];
                 return <span key={s} style={{ display:"flex", alignItems:"center", gap:5, fontSize:10, color:c, fontFamily:"var(--font-mono)", letterSpacing:"0.04em" }}><span style={{ width:6, height:6, borderRadius:"50%", background:c, display:"inline-block" }} />{s}</span>;
@@ -352,7 +373,7 @@ export default function Chatbot() {
                 <p style={{ color:"var(--muted)", maxWidth:520, textAlign:"center", lineHeight:1.7, marginBottom:40, fontSize:14 }}>Ask about groundwater status, extraction rates, critical zones, or water quality across <strong style={{color:'var(--text)'}}>713+ districts</strong> and <strong style={{color:'var(--text)'}}>36 states/UTs</strong> — powered by CGWB FY 2024-25 data.</p>
 
                 {/* Suggestion cards 2×2 */}
-                <div style={{ width:"100%", maxWidth:720, display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:12 }}>
+                <div className="resp-grid-2" style={{ width:"100%", maxWidth:720, display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:12 }}>
                   {suggestions.map((s, i) => (
                     <div key={s} className="suggestion-card" onClick={() => send(s)} style={{ padding:"16px 18px", background:"var(--surface)", border:"1px solid var(--border)", borderRadius:14, cursor:"pointer", display:"flex", alignItems:"center", gap:12, boxShadow:"0 2px 8px rgba(0,0,0,0.08)" }}>
                       <span style={{ width:32, height:32, borderRadius:8, background:"var(--accent-dim)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:16 }}>
