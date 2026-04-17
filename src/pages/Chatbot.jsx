@@ -870,8 +870,8 @@ export default function Chatbot() {
               onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
               title="Back to dashboard"
             >←</button>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg, #0078d4, #00a8e8)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 16px rgba(0,168,232,0.3)", cursor: "pointer", flexShrink: 0 }} onClick={() => navigate('/')}>
-              <img src="/ingres.svg" alt="" />
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} onClick={() => navigate('/')}>
+              <img src="/ingres.svg" alt="" style={{ width: 18 }} />
             </div>
             <div>
               <div style={{ fontWeight: 700, fontSize: 14, fontFamily: "'Inter', sans-serif", letterSpacing: '-0.01em' }}>AquaGuide AI</div>

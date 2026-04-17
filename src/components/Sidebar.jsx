@@ -64,8 +64,8 @@ export default function Sidebar() {
       <aside className={`sidebar-container sidebar-desktop${mobileOpen ? ' mobile-open' : ''}`}>
         <div style={{ padding: "24px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0, transition: "border-color 0.35s", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, var(--accent2), var(--accent))", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 900, color: "var(--btn-text)", fontSize: 14, boxShadow: "0 0 16px var(--accent-glow)", cursor: "pointer", transition: "all 0.3s" }} onClick={() => navigate("/")}>
-              <img src="/ingres.svg" alt="" />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s", cursor: "pointer" }} onClick={() => navigate("/")}>
+              <img src="/ingres.svg" alt="" style={{ width: 20 }} />
             </div>
             <div>
               <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "var(--text)", lineHeight: 1.2, transition: "color 0.35s" }}>AquaGuide</div>

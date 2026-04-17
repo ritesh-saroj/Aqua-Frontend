@@ -684,7 +684,7 @@ export default function History() {
               onMouseLeave={e => { e.currentTarget.style.color = "var(--muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
               ←
             </button>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg,#0078d4,#00a8e8)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 14px rgba(0,168,232,0.2)", flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <img src="/ingres.svg" alt="" style={{ width: 18 }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
