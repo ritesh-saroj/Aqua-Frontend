@@ -746,7 +746,7 @@ export default function History() {
                 const lastQuery = userMsgs[userMsgs.length - 1]?.text || "";
                 return (
                   <div key={s.id} className={`s-card${isActive ? " active" : ""}`}
-                    onClick={() => setSelected(s)}
+                    onClick={() => { setSelected(s); setMobileSidebarOpen(false); }}
                     style={{ animation: `fadeUp 0.3s ease ${idx * 0.04}s both` }}>
                     <div style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: isActive ? "var(--accent)" : "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
                       {s.title || "Untitled Chat"}
@@ -839,8 +839,18 @@ export default function History() {
             </>
           ) : (
             /* Empty state */
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--muted)", animation: "fadeUp 0.4s ease both" }}>
-              <div style={{ width: 66, height: 66, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18, boxShadow: "0 0 32px rgba(0,168,232,0.06)" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg)", minWidth: 0 }}>
+              {/* Mobile-only header for opening history when nothing is selected */}
+              <div className="resp-hide-desktop" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", background: "var(--bg2)", display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+                <button className="hamburger-btn" onClick={() => setMobileSidebarOpen(true)}
+                  style={{ background: "none", border: "none", color: "var(--text)", fontSize: 20, cursor: "pointer", padding: 0 }}>
+                  ☰
+                </button>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, color: "var(--accent)" }}>Select Chat</div>
+              </div>
+
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "var(--muted)", animation: "fadeUp 0.4s ease both", padding: 24 }}>
+                <div style={{ width: 66, height: 66, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18, boxShadow: "0 0 32px rgba(0,168,232,0.06)" }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
@@ -861,6 +871,7 @@ export default function History() {
                   💬 Start Chatting
                 </button>
               )}
+              </div>
             </div>
           )}
         </div>

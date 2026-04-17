@@ -5,7 +5,15 @@ import { signInWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail,
 
 const googleProvider = new GoogleAuthProvider();
 function getErrorMessage(code) {
-  const map = { "auth/invalid-email":"Invalid email address.","auth/wrong-password":"Incorrect password.","auth/user-not-found":"No account found with this email.","auth/too-many-requests":"Too many attempts. Try again later.","auth/popup-closed-by-user":"Google sign-in cancelled.","auth/network-request-failed":"Network error." };
+  const map = { 
+    "auth/invalid-email":"Invalid email address.",
+    "auth/wrong-password":"Incorrect password.",
+    "auth/user-not-found":"No account found with this email.",
+    "auth/too-many-requests":"Too many attempts. Try again later.",
+    "auth/popup-closed-by-user":"Google sign-in cancelled.",
+    "auth/network-request-failed":"Network error.",
+    "auth/unauthorized-domain": "This domain is not authorized for Firebase Auth. Please add it to the 'Authorized Domains' list in the Firebase Console."
+  };
   return map[code] || "Something went wrong. Please try again.";
 }
 

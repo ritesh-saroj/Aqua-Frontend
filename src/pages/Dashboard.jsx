@@ -160,7 +160,7 @@ export default function Dashboard() {
                         padding: 6, minWidth: 150, zIndex: 20, boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
                         animation: "fadeUp 0.15s ease both"
                       }}>
-                        {[["📄", "CSV", "csv"], ["📊", "Excel", "excel"], ["📕", "PDF", "pdf"]].map(([icon, label, fmt]) => (
+                        {[["📄", "CSV", "csv"], ["📊", "Excel", "excel"]].map(([icon, label, fmt]) => (
                           <div key={fmt} onClick={() => handleExport(fmt)} style={{
                             padding: "8px 12px", borderRadius: 6, fontSize: 12, color: "var(--text)",
                             cursor: "pointer", display: "flex", alignItems: "center", gap: 8,

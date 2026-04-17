@@ -6,7 +6,14 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 const googleProvider = new GoogleAuthProvider();
 function getErrorMessage(code) {
-  const map = { "auth/email-already-in-use":"This email is already registered.","auth/invalid-email":"Invalid email address.","auth/weak-password":"Password must be at least 6 characters.","auth/popup-closed-by-user":"Google sign-in cancelled.","auth/network-request-failed":"Network error." };
+  const map = { 
+    "auth/email-already-in-use":"This email is already registered.",
+    "auth/invalid-email":"Invalid email address.",
+    "auth/weak-password":"Password must be at least 6 characters.",
+    "auth/popup-closed-by-user":"Google sign-in cancelled.",
+    "auth/network-request-failed":"Network error.",
+    "auth/unauthorized-domain": "This domain is not authorized for Firebase Auth. Please add it to the 'Authorized Domains' list in the Firebase Console."
+  };
   return map[code] || "Something went wrong. Please try again.";
 }
 

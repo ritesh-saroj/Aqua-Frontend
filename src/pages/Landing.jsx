@@ -145,6 +145,48 @@ const styles = `
     .nav-desktop { display: none !important; }
     .landing-nav { padding: 12px 20px !important; }
   }
+
+  /* ── Nav Links ── */
+  .nav-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-ui);
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+    padding: 6px 0;
+    letter-spacing: 0.01em;
+  }
+  .nav-link:hover {
+    color: var(--text);
+  }
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+    opacity: 0.8;
+  }
+  .nav-link:hover::after {
+    transform: scaleX(1);
+  }
+  
+  /* Link active state indicator */
+  .nav-link.active {
+    color: var(--accent);
+  }
+  .nav-link.active::after {
+    transform: scaleX(1);
+    background: var(--accent);
+    opacity: 1;
+  }
 `;
 
 /* ── useInView hook ── */
@@ -877,10 +919,12 @@ export default function Landing() {
       {/* ─── FOOTER ───────────────────────────────── */}
       <footer className="resp-footer" style={{ padding: "36px 56px", borderTop: "1px solid var(--border)", background: "var(--bg2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, var(--accent2), var(--accent))", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-display)", fontWeight: 900, color: "var(--btn-text)", fontSize: 11, transition: "transform 0.3s" }}
-            onMouseEnter={e => e.currentTarget.style.transform = "rotate(10deg) scale(1.1)"}
-            onMouseLeave={e => e.currentTarget.style.transform = ""}
-          >IN</div>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.3s" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,168,232,0.3)"; e.currentTarget.style.background = "rgba(0,168,232,0.06)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.transform = ""; }}
+          >
+            <img src="/ingres.svg" alt="" style={{ width: 18, height: 18, opacity: 0.8 }} />
+          </div>
           <span style={{ fontSize: 14, fontWeight: 600 }}>AquaGuide AI</span>
         </div>
         <div style={{ fontSize: 12, color: "var(--muted)" }}>
