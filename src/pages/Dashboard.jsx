@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+
 import { auth } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import Sidebar from "../components/Sidebar";
