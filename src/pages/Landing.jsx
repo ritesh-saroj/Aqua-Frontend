@@ -380,7 +380,6 @@ export default function Landing() {
     { icon: "🗺️", title: "Interactive Map",            desc: "Color-coded India map with block-level drilling. Green to red — know your region at a glance." },
     { icon: "📊", title: "Trend Analysis",             desc: "Year-over-year extraction charts from 2008 to 2023. Spot the trajectory before it's a crisis." },
     { icon: "📄", title: "Export Reports",             desc: "Download AI-generated summaries as CSV or Excel for presentations and policy briefs." },
-    { icon: "🔔", title: "Multi-language",             desc: "Query in English, Hindi, or Marathi via Google Translate API. Accessible to every stakeholder." },
     { icon: "🔒", title: "Secure & User-Scoped",       desc: "JWT authentication with private chat history. Your reports, your data — fully isolated." },
   ];
 
@@ -865,9 +864,9 @@ export default function Landing() {
               Built for <em style={{ color: "var(--accent)" }}>Groundwater Experts</em>
             </h2>
           </div>
-          <div className="resp-grid-3 stagger" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div className="stagger" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 20 }}>
             {features.map((f, i) => (
-              <div key={i} className="card-shimmer" style={{ padding: "28px 26px", borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", transition: "all 0.35s cubic-bezier(.22,1,.36,1)", cursor: "default" }}
+              <div key={i} className="card-shimmer" style={{ flex: "1 1 320px", maxWidth: "360px", padding: "28px 26px", borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", transition: "all 0.35s cubic-bezier(.22,1,.36,1)", cursor: "default" }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,168,232,0.35)"; e.currentTarget.style.transform = "translateY(-6px)"; e.currentTarget.style.boxShadow = "0 16px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,168,232,0.06)"; e.currentTarget.style.background = "var(--surface-hover)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.background = "var(--surface)"; }}
               >
